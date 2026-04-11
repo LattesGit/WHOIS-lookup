@@ -20,10 +20,10 @@ iyi kullanımlar dileriz
 ## Kurulum
 
 ```bash
-git clone https://github.com/kullaniciadi/whois-tool.git
-cd whois-tool
+git clone https://github.com/kullaniciadi/whois-lookup.git
+cd whois-lookup
 go mod tidy
-go build -o whois-tool
+go build -o whois-lookup
 ```
 
 ## Kullanım
@@ -31,7 +31,7 @@ go build -o whois-tool
 Programı çalıştır:
 
 ```bash
-./whois-tool
+./whois-lookup
 ```
 
 ### Menü
