@@ -18,11 +18,10 @@ import (
 	"time"
 
 	"github.com/likexian/whois"
+	whoisparser "github.com/likexian/whois-parser"
 )
 
-// ================= CONFIG =================
-
-const (
+var (
 	defaultTimeout = 10 * time.Second
 	cacheTTL       = 10 * time.Minute
 	cacheCleanup   = 1 * time.Minute
@@ -99,11 +98,24 @@ func (w *WhoisService) Lookup(ctx context.Context, target string) (string, error
 		return data, nil
 	}
 
+	// Context timeout channel
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(defaultTimeout):
+			return
+		}
+	}()
+
+	// Whois goroutine
 	resultChan := make(chan string, 1)
 	errChan := make(chan error, 1)
 
 	go func() {
-		res, err := whois.Raw(target)
+		res, err := whois.Whois(target)
 		if err != nil {
 			errChan <- err
 			return
@@ -112,7 +124,7 @@ func (w *WhoisService) Lookup(ctx context.Context, target string) (string, error
 	}()
 
 	select {
-	case <-ctx.Done():
+	case <-done:
 		return "", errors.New("timeout")
 	case err := <-errChan:
 		return "", err
@@ -145,10 +157,10 @@ func worker(ctx context.Context, id int, jobs <-chan Job, svc *WhoisService, wg 
 }
 
 func runBulk(targets []string, svc *WhoisService) {
-	jobs := make(chan Job)
+	jobs := make(chan Job, len(targets))
 	var wg sync.WaitGroup
 
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout*2)
 	defer cancel()
 
 	for i := 0; i < workerCount; i++ {
@@ -178,14 +190,18 @@ func resolveDNS(domain string) (*DNSResult, error) {
 	}
 
 	result := &DNSResult{}
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
 
-	ips, err := net.LookupIP(domain)
+	// IPs
+	ips, err := net.LookupIPContext(ctx, domain)
 	if err == nil {
 		for _, ip := range ips {
 			result.IPs = append(result.IPs, ip.String())
 		}
 	}
 
+	// MX
 	mx, err := net.LookupMX(domain)
 	if err == nil {
 		for _, m := range mx {
@@ -193,6 +209,7 @@ func resolveDNS(domain string) (*DNSResult, error) {
 		}
 	}
 
+	// NS
 	ns, err := net.LookupNS(domain)
 	if err == nil {
 		for _, n := range ns {
@@ -222,15 +239,11 @@ func readFile(path string) ([]string, error) {
 		}
 	}
 
-	return targets, nil
-}
-
-func exportJSON(data interface{}, filename string) error {
-	file, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return err
+	if err := scanner.Err(); err != nil {
+		return nil, err
 	}
-	return os.WriteFile(filename, file, 0644)
+
+	return targets, nil
 }
 
 func printPreview(data string) {
@@ -245,6 +258,7 @@ func printPreview(data string) {
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetOutput(os.Stdout)
 
 	cache := NewCache()
 	svc := NewWhoisService(cache)
@@ -252,7 +266,8 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		fmt.Println("\n1) Tek sorgu")
+		fmt.Println("\n=== WHOIS & DNS TOOL ===")
+		fmt.Println("1) Tek sorgu")
 		fmt.Println("2) Toplu sorgu")
 		fmt.Println("3) DNS sorgu")
 		fmt.Println("4) Çıkış")
@@ -262,21 +277,26 @@ func main() {
 		choice = strings.TrimSpace(choice)
 
 		switch choice {
-
 		case "1":
 			fmt.Print("Domain/IP: ")
 			target, _ := reader.ReadString('\n')
 			target = strings.TrimSpace(target)
 
-			ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
-			res, err := svc.Lookup(ctx, target)
-			cancel()
+			if target == "" {
+				log.Println("Hata: Domain boş olamaz")
+				continue
+			}
 
+			ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+			defer cancel()
+
+			res, err := svc.Lookup(ctx, target)
 			if err != nil {
 				log.Println("Hata:", err)
 				continue
 			}
 
+			fmt.Println("\n=== SONUÇ ===")
 			fmt.Println(res)
 
 		case "2":
@@ -290,6 +310,12 @@ func main() {
 				continue
 			}
 
+			if len(targets) == 0 {
+				log.Println("Dosya boş veya geçersiz")
+				continue
+			}
+
+			fmt.Printf("Toplam %d hedef bulundu. İşleniyor...\n", len(targets))
 			runBulk(targets, svc)
 
 		case "3":
@@ -299,15 +325,20 @@ func main() {
 
 			res, err := resolveDNS(domain)
 			if err != nil {
-				log.Println(err)
+				log.Println("Hata:", err)
 				continue
 			}
 
 			out, _ := json.MarshalIndent(res, "", "  ")
+			fmt.Println("\n=== DNS SONUÇLARI ===")
 			fmt.Println(string(out))
 
 		case "4":
+			fmt.Println("Çıkış yapılıyor...")
 			return
+
+		default:
+			fmt.Println("Geçersiz seçim!")
 		}
 	}
 }
