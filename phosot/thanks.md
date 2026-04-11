@@ -1,0 +1,1 @@
+### THANKS FOR USİNG OUR WHOİS <3
