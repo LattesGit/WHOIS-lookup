@@ -1,4 +1,4 @@
-🔍 WHOIS-Lookup
+[[🔍 WHOIS-Lookup
 
 **En iyi terminal WHOIS sorgusu aracı.** Clean output, %100 okunabilirlik, txt dosyasına otomatik kayıt, hatasız çalışma. WHOIS sorgusunu ChatGPT'ye Claude'a atmadan anlamak istiyorsan — bu kesinlikle aradığın tool'dur.
 
@@ -172,11 +172,12 @@ MIT
 **Original Concept**: LatenT (@HargosAktif) — Terminal WHOIS sorgusu için en clean aracı oluşturmak amacıyla.
 
 **Implementation & Development**: 
-- **Miraç Akkuş** (@HargosAktif) — Project Lead, Pentesting Focus
-- **Claude AI** — Full-stack implementation, optimization
+- **Miraç Akkuş** (@HargosAktif) — Projeyi oluşturan. Pentester olma yolundaki
+- 
 
 ---
 
 **Katkılar kabul ediyoruz!** Fork → Feature Branch → Pull Request
 
 **Not**: Bu tool, pentest recon'unda işe yaramak için tasarlanmıştır. Clean output, %100 okunabilirlik ve hatasız çalışma — kesinlikle önerilen bir araç.
+](https://img.shields.io/badge/Go-1.21%2B-blue.svg)](https://img.shields.io/badge/Go-1.21%2B-blue.svg)
