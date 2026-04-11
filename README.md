@@ -1,183 +1,156 @@
-[[🔍 WHOIS-Lookup
+# WHOIS & DNS CLI Tool
 
-**En iyi terminal WHOIS sorgusu aracı.** Clean output, %100 okunabilirlik, txt dosyasına otomatik kayıt, hatasız çalışma. WHOIS sorgusunu ChatGPT'ye Claude'a atmadan anlamak istiyorsan — bu kesinlikle aradığın tool'dur.
-
-## Nedir?
-
-**WHOIS-Lookup**, WHOIS sorgularını terminal menüsüyle kolay bir şekilde yapmanı sağlayan bir Go uygulamasıdır. Hedef domain/IP'yi gir, ve detaylı bilgileri al — parse edilmiş, renkli, okunabilir format'ta. Sonuçlar otomatik olarak temiz TXT dosyasına kaydedilir.
+Minimal, hızlı ve concurrency destekli bir WHOIS ve DNS sorgu aracıdır.
+Go ile yazılmıştır ve bulk işlemler için optimize edilmiştir.
+WHOIS sorgusunu okunabilir halde yapmıştır.
+iyi kullanımlar dileriz
 
 ## Özellikler
 
-```
-[✓] Single domain/IP lookup
-[✓] Bulk file processing (satır satır hedefler)
-[✓] Renkli & formatted terminal çıktısı
-[✓] Domain, nameserver, registrar, owner bilgileri
-[✓] Sonuçları TXT dosyaya kaydetme
-[✓] Custom dosya yolu belirleme
-[✓] Error handling & rate limiting
-[✓] Standalone binary (dependency yok)
-```
-
-## Kullanım Senaryoları
-
-- **Reconnaissance**: Hedef domain'in whois bilgisini topla
-- **Enumeration**: Nameserver'ları, registrar'ı ve sahibi tespit et
-- **Bulk Analysis**: Birden çok domain'i organize şekilde sorgula
-- **Osint**: Domain yaşı, oluşturma tarihi, güncellenme tarihi gibi metadata topla
+* WHOIS sorgulama (tekli ve toplu)
+* DNS kayıtlarını çözümleme (A, MX, NS) // daha fazla ekelyeceğim üşenmessem:D3
+* Worker pool ile paralel işlem
+* TTL destekli in-memory cache
+* Otomatik cache temizleme
+* Timeout kontrolü (context tabanlı)
+* JSON export desteği (opsiyonel)
+* Basit ve hızlı CLI arayüzü
 
 ## Kurulum
 
-### Gereksinimler
-- Go 1.21 veya üstü
-- Internet bağlantısı (WHOIS server'larına erişim için)
-
-### From Source
-
 ```bash
-git clone https://github.com/yourusername/whois-lookup.git
-cd whois-lookup
-
-go mod download
-go build -o whois-lookup main.go
-```
-
-### Binary Kullanımı
-
-```bash
-./whois-lookup
+git clone https://github.com/kullaniciadi/whois-tool.git
+cd whois-tool
+go mod tidy
+go build -o whois-tool
 ```
 
 ## Kullanım
 
-### Tek Domain/IP Sorgusu
+Programı çalıştır:
 
 ```bash
-./whois-lookup
+./whois-tool
 ```
 
-Menu açılacak:
-```
-┌─────────────────────────────────────┐
-│  WHOIS-LOOKUP - Domain/IP Recon     │
-├─────────────────────────────────────┤
-│ [1] Single Domain/IP Lookup         │
-│ [2] Bulk File Lookup                │
-│ [3] Exit                            │
-└─────────────────────────────────────┘
-
-Seçim yap: 1
-Domain/IP gir: github.com
-```
-
-### Bulk Lookup
-
-Bir metin dosyasını hazırla (domains.txt):
-```
-github.com
-google.com
-192.168.1.1
-scanme.nmap.org
-```
-
-Sonra:
-```
-Seçim yap: 2
-Dosya yolunu gir: domains.txt
-```
-
-Tool tüm hedefleri sorgulayıp sonuçları gösterir.
-
-### Çıktı Kaydetme
-
-Sorgu tamamlandıktan sonra:
-```
-Sonuçları dosyaya kaydet? (e/h): e
-Dosya yolu [whois-github.com-1712345678.txt]: ./results/github-whois.txt
-[✓] Kaydedildi: ./results/github-whois.txt
-```
-
-## Çıktı Formatı
+### Menü
 
 ```
-╔════════════════════════════════════════════╗
-║          WHOIS LOOKUP SONUÇLARI            ║
-╚════════════════════════════════════════════╝
-
-┌─ Domain Bilgileri ─┐
-  Domain        : github.com
-  Oluşturma      : 2007-10-29
-  Güncelleme     : 2024-03-12
-  Bitiş Tarihi   : 2025-10-29
-  Nameserverlar  : 
-                   • ns1.p16.dynect.net
-                   • ns2.p16.dynect.net
-  Status         : clientDeleteProhibited
-
-┌─ Kayıtçı Bilgileri ─┐
-  İsim           : NameCheap, Inc.
-  WHOIS Server   : whois.namecheap.com
-  URL            : http://www.namecheap.com
-
-┌─ Sahibi Bilgileri ─┐
-  İsim           : GitHub, Inc.
-  Kuruluş        : GitHub, Inc.
-  Ülke           : US
+1) Tek sorgu
+2) Toplu sorgu
+3) DNS sorgu
+4) Çıkış
 ```
-
-## Teknoloji
-
-- **Dil**: Go 1.21+
-- **WHOIS**: `github.com/likexian/whois`
-- **Parsing**: `github.com/likexian/whois-parser`
-- **UI**: `github.com/fatih/color` (terminal renkli çıktı)
-
-## Performans
-
-- **Single Query**: < 2 saniye
-- **Bulk (10 domain)**: ~10-15 saniye (rate limiting dahil)
-- **Binary Size**: ~5MB (UPX ile sıkıştırılabilir)
-
-## Sınırlamalar
-
-- Bazı WHOIS server'ları rate limiting yapabilir
-- Private domain'ler tam bilgi göstermeyebilir
-- IPv6 IP'ler bazı registrar'larda detay olmayabilir
-
-## İyileştirme Fikirleri
-
-- [ ] Proxy/VPN support
-- [ ] Caching mechanism
-- [ ] JSON output format
-- [ ] DNS query integration
-- [ ] Subdomain enumeration
-- [ ] Export formats (CSV, JSON)
-
-## ⚠️ Yasal Uyarı
-
-Bu araç yalnızca **izinli/authorized** sistemlerde ve **eğitim amaçlı** kullanım içindir. 
-
-- WHOIS sorgusu kendisi legal'dir (public bilgi)
-- Ancak bulk/otomatik sorgular WHOIS ToS'u ihlal edebilir
-- İzinsiz sistem'e erişim girişimi yasa dışıdır
-
-**Sorumlu ve yasa uyumlu kullan.**
-
-## License
-
-MIT
-
-## Credits & Author
-
-**Original Concept**: LatenT (@HargosAktif) — Terminal WHOIS sorgusu için en clean aracı oluşturmak amacıyla.
-
-**Implementation & Development**: 
-- **Miraç Akkuş** (@HargosAktif) — Projeyi oluşturan. Pentester olma yolundaki
-- 
 
 ---
 
-**Katkılar kabul ediyoruz!** Fork → Feature Branch → Pull Request
+## 1. Tek Sorgu
 
-**Not**: Bu tool, pentest recon'unda işe yaramak için tasarlanmıştır. Clean output, %100 okunabilirlik ve hatasız çalışma — kesinlikle önerilen bir araç.
-](https://img.shields.io/badge/Go-1.21%2B-blue.svg)](https://img.shields.io/badge/Go-1.21%2B-blue.svg)
+Tek bir domain veya IP için WHOIS sorgusu yapar.
+
+```
+Domain/IP: example.com
+```
+
+Cache varsa direkt cache’den döner.
+
+---
+
+## 2. Toplu Sorgu
+
+Bir dosya içindeki domain/IP listesini paralel şekilde işler.
+
+### Örnek dosya:
+
+```
+example.com
+google.com
+github.com
+```
+
+```
+Dosya yolu: targets.txt
+```
+
+* 5 worker ile paralel çalışır
+* Cache otomatik kullanılır
+
+---
+
+## 3. DNS Sorgu
+
+Bir domain için DNS kayıtlarını getirir.
+
+Çıktı JSON formatındadır:
+
+```json
+{
+  "ips": ["1.1.1.1"],
+  "mx": ["mail.example.com"],
+  "ns": ["ns1.example.com"]
+}
+```
+
+---
+
+## Mimari
+
+Proje basit ama ölçeklenebilir bir yapı kullanır:
+
+```
+Cache (TTL + cleanup goroutine)
+        ↓
+WhoisService (business logic)
+        ↓
+Worker Pool (concurrency control)
+        ↓
+CLI (input/output)
+```
+
+---
+
+## Teknik Detaylar
+
+* **Timeout:** 10 saniye (context ile kontrol edilir)
+* **Cache TTL:** 10 dakika
+* **Cleanup:** Her 1 dakikada expired veriler silinir
+* **Worker sayısı:** 5
+
+---
+
+## Önemli Notlar
+
+* WHOIS sunucuları rate limit uygulayabilir
+* Çok büyük bulk listelerde timeout yaşanabilir
+* whois kütüphanesi context desteklemediği için timeout sonrası goroutine çalışmaya devam edebilir
+
+---
+
+## Geliştirme Fikirleri
+
+* Retry mekanizması ekleme
+* Custom DNS resolver
+* CLI flag desteği (cobra)
+* Disk tabanlı cache
+* Subdomain enumeration (passive + brute)
+* Output format seçenekleri (txt/json)
+
+---
+
+## Lisans
+
+MIT
+
+---
+
+## Amaç
+
+Bu proje:
+
+* Öğrenme & test
+* Pentest yardımcı araç geliştirme
+* Basit ama etkili CLI tool yazımı
+* whois sorgusunu okunaklı hale getirme
+
+amacıyla geliştirilmiştir.
+illegal kullanım sonrasında yapımcı değil kullanan sorumlu tutulur.
