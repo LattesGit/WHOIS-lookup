@@ -1,4 +1,5 @@
 # WHOIS & DNS CLI Tool
+![Kali](https://img.shields.io/badge/Kali_Linux-557C94?style=for-the-badge&logo=kalilinux&logoColor=white)
 
 Minimal, hızlı ve concurrency destekli bir WHOIS ve DNS sorgu aracıdır.
 Go ile yazılmıştır ve bulk işlemler için optimize edilmiştir.
