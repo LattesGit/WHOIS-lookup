@@ -1,4 +1,3 @@
-```go
 package main
 
 import (
@@ -669,4 +668,4 @@ func main() {
 		printJSON(result)
 	}
 }
-```
+
